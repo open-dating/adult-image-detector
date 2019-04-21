@@ -6,6 +6,7 @@ import (
 )
 
 type ImageScoringResult struct {
+	AppVersion string `json:"app_version"`
 	OpenNsfwScore float32 `json:"open_nsfw_score"`
 	ImageName string `json:"image_name"`
 }
@@ -30,6 +31,7 @@ func ProceedImage(w http.ResponseWriter, r *http.Request)  {
 	res := ImageScoringResult{
 		OpenNsfwScore: openNsfwScore,
 		ImageName: imageName,
+		AppVersion: VERSION,
 	}
 
 	// remove uploaded file

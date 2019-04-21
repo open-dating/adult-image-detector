@@ -1,5 +1,7 @@
 ### adult-image-detector
-Use deep neural networks and other algos for detect nude images
+Use deep neural networks and other algos for detect nude images. 
+
+[Try detection](https://adult-image-detector.herokuapp.com/)
 
 ### Usage
 Exec:
@@ -9,6 +11,7 @@ curl -i -X POST -F "image=@Daddy_Lets_Me_Ride_His_Cock_preview_720p.mp4.jpg" htt
 Result:
 ```json
 {
+  "app_version":"0.1.0",
   "open_nsfw_score":0.11577397,
   "image_name":"Daddy_Lets_Me_Ride_His_Cock_preview_720p.mp4.jpg"
 }
