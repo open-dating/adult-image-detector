@@ -1,0 +1,3 @@
+[submodule "models/open_nsfw"]
+	path = models/open_nsfw
+	url = https://github.com/yahoo/open_nsfw

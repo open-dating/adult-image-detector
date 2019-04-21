@@ -1,0 +1,10 @@
+version: '2'
+services:
+  go.adult-image-detector-test:
+    container_name: adult-image-detector-go-test
+    build:
+      context: ../../
+      dockerfile: Dockerfile
+    volumes:
+    - ../../:/go/src/adult-image-detector
+    command: "go test"

@@ -1,0 +1,21 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "EnrnBIASKAi6i2e/pWL83QBRUx0=",
+			"path": "github.com/caarlos0/env",
+			"revision": "515df9e9ee27b2dc58e4bc30b10598ebc54ffd36",
+			"revisionTime": "2018-10-24T00:58:29Z"
+		},
+		{
+			"checksumSHA1": "Kg5Y/zgop/8UOR6sPpS9n/D8fuo=",
+			"path": "gocv.io/x/gocv",
+			"revision": "09994446aec439b74e48f97f777026cc47a6fe14",
+			"revisionTime": "2018-06-04T07:00:00Z",
+			"version": "0.13.1",
+			"versionExact": "0.13.1"
+		}
+	],
+	"rootPath": "adult-image-detector"
+}

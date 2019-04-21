@@ -1,0 +1,5 @@
+{
+  "name": "adult-image-detector",
+  "description": "Use deep neural networks and other algos for detect nude images",
+  "repository": "https://github.com/grinat/adult-image-detector"
+}

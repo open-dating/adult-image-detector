@@ -1,0 +1,13 @@
+version: '2'
+services:
+  go.adult-image-detector-dev:
+    container_name: adult-image-detector-go-dev
+    restart: always
+    ports:
+     - "9191:9191"
+    build:
+      context: ../../
+      dockerfile: Dockerfile
+    volumes:
+    - ../../:/go/src/adult-image-detector
+    command: "fresh"
