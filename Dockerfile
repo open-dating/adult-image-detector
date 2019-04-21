@@ -64,14 +64,12 @@ FROM gocv AS adult-image-detector
 RUN go get -u github.com/kardianos/govendor
 RUN go get github.com/pilu/fresh
 
-RUN git clone https://github.com/grinat/adult-image-detector "$GOPATH/src/adult-image-detector"
-#RUN mkdir -p "$GOPATH/src/adult-image-detector" && chmod -R 777 "$GOPATH/src/adult-image-detector"
+RUN git clone https://github.com/grinat/adult-image-detector --recursive "$GOPATH/src/adult-image-detector"
 
 WORKDIR $GOPATH/src/adult-image-detector
 
 COPY . .
 RUN govendor sync
-RUN git init && git submodule init && git submodule update
 
 RUN chmod -R 777 "$GOPATH/src/adult-image-detector/uploads"
 

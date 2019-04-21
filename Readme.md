@@ -52,6 +52,16 @@ Go 1.11
 opencv 3.4.1
 
 ### Development without docker
+Clone submodules:
+```
+git submodule init
+git submodule update
+```
+Or recursive clone that repo:
+```
+git clone https://github.com/grinat/adult-image-detector --recursive
+```
+
 Install dependencies:
 ```
 # get package manager
@@ -59,12 +69,6 @@ go get -u github.com/kardianos/govendor
 
 # install dependencies
 govendor sync
-```
-
-Clone submodules:
-```
-git submodule init
-git submodule update
 ```
 
 Install opencv 3.4.1
