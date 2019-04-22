@@ -73,6 +73,8 @@ RUN govendor sync
 
 RUN chmod -R 777 "$GOPATH/src/adult-image-detector/uploads"
 
+RUN go test
+
 RUN go build
 
 EXPOSE 9191

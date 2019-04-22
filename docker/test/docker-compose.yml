@@ -7,4 +7,4 @@ services:
       dockerfile: Dockerfile
     volumes:
     - ../../:/go/src/adult-image-detector
-    command: "go test"
+    command: "sh -c 'govendor sync && go test'"

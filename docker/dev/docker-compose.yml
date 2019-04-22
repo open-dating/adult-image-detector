@@ -9,4 +9,4 @@ services:
       dockerfile: Dockerfile
     volumes:
     - ../../:/go/src/adult-image-detector
-    command: "fresh"
+    command: "sh -c 'govendor sync && fresh'"

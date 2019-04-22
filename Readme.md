@@ -25,11 +25,13 @@ docker run -p 9191:9191 grinat0/adult-image-detector
 
 #### Build
 ```
+git clone https://github.com/grinat/adult-image-detector --recursive
 docker build -t adult-image-detector .
 ```
 
 #### Development
 ```
+git clone https://github.com/grinat/adult-image-detector --recursive
 cd docker/dev
 docker-compose up
 ```
@@ -52,14 +54,14 @@ Go 1.11
 opencv 3.4.1
 
 ### Development without docker
-Clone submodules:
+Recursive clone that repo:
+```
+git clone https://github.com/grinat/adult-image-detector --recursive
+```
+or manually install submodules:
 ```
 git submodule init
 git submodule update
-```
-Or recursive clone that repo:
-```
-git clone https://github.com/grinat/adult-image-detector --recursive
 ```
 
 Install dependencies:
