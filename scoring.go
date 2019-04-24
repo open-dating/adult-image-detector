@@ -4,6 +4,10 @@ import (
 	"errors"
 	"gocv.io/x/gocv"
 	"image"
+	_ "image/gif"
+	_ "image/png"
+	_ "image/jpeg"
+	"os"
 	"path/filepath"
 )
 
@@ -52,4 +56,25 @@ func GetOpenNsfwScore(filePath string) (score float32, err error) {
 	defer detBlob.Close()
 
 	return detBlob.GetFloatAt(0, 1), nil
+}
+
+// get result from An Algorithm for Nudity Detection by Rigan Ap-apid
+func getAnAlgorithmForNudityDetectionResult(filePath string) (result bool, err error)  {
+	existingImageFile, err := os.Open(filePath)
+	if err != nil {
+		return true, errors.New("Cant open file")
+	}
+	defer existingImageFile.Close()
+
+	imageData, _, err := image.Decode(existingImageFile)
+	if err != nil {
+		RemoveFile(filePath)
+		return true, errors.New("Decode err")
+	}
+
+	// TODO write go implemntation of algo
+	anAlg := AnAlgorithm{
+		img:imageData,
+	}
+	return anAlg.IsNude()
 }

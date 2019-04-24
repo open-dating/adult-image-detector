@@ -11,8 +11,9 @@ curl -i -X POST -F "image=@Daddy_Lets_Me_Ride_His_Cock_preview_720p.mp4.jpg" htt
 Result:
 ```json
 {
-  "app_version":"0.1.0",
-  "open_nsfw_score":0.11577397,
+  "app_version":"0.2.0",
+  "open_nsfw_score":0.81577397,
+  "an_algorithm_for_nudity_detection": true,
   "image_name":"Daddy_Lets_Me_Ride_His_Cock_preview_720p.mp4.jpg"
 }
 ```

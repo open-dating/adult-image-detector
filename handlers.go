@@ -8,6 +8,7 @@ import (
 type ImageScoringResult struct {
 	AppVersion string `json:"app_version"`
 	OpenNsfwScore float32 `json:"open_nsfw_score"`
+	AnAlgorithmForNudityDetection bool `json:"an_algorithm_for_nudity_detection"`
 	ImageName string `json:"image_name"`
 }
 
@@ -27,9 +28,17 @@ func ProceedImage(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 
+	// get An Algorithm for Nudity Detection
+	anAlgorithmForNudityDetection, err := getAnAlgorithmForNudityDetectionResult(filePath)
+	if err != nil {
+		HandleError(w, err)
+		return
+	}
+
 	// prepare result
 	res := ImageScoringResult{
 		OpenNsfwScore: openNsfwScore,
+		AnAlgorithmForNudityDetection: anAlgorithmForNudityDetection,
 		ImageName: imageName,
 		AppVersion: VERSION,
 	}

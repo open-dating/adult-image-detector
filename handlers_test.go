@@ -2,11 +2,13 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http/httptest"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -27,34 +29,60 @@ func TestShowForm(t *testing.T)  {
 }
 
 func TestProceedImage(t *testing.T)  {
-	r, _ := os.Open("./fixtures/forest.jpg")
+    // forest.jpg
+	body, err := uploadFixtureAndGetResult("./fixtures/forest.jpg")
+	if err != nil {
+		t.Error("Image upload err:", err.Error())
+	}
+	result := ImageScoringResult{}
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		t.Errorf("Expected body with json. Got %s", string(body))
+	}
+	if result.AnAlgorithmForNudityDetection != false {
+		t.Errorf("Expected AnAlgorithmForNudityDetection false for forest got AnAlgorithmForNudityDetection %s", strconv.FormatBool(result.AnAlgorithmForNudityDetection))
+	}
+	if result.OpenNsfwScore < 0.15 == false {
+		t.Errorf("Expected OpenNsfwScore < 0.15 for forest got OpenNsfwScore %f", result.OpenNsfwScore)
+	}
+
+    // big_boobs.cropped.png
+	body, err = uploadFixtureAndGetResult("./fixtures/big_boobs.cropped.png")
+	if err != nil {
+		t.Error("Image upload err:", err.Error())
+	}
+	result = ImageScoringResult{}
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		t.Errorf("Expected body with json. Got %s", string(body))
+	}
+	if result.AnAlgorithmForNudityDetection != true {
+		t.Errorf("Expected AnAlgorithmForNudityDetection true for big_boobs.cropped.png got AnAlgorithmForNudityDetection %s", strconv.FormatBool(result.AnAlgorithmForNudityDetection))
+	}
+	if result.OpenNsfwScore > 0.5 == false {
+		t.Errorf("Expected OpenNsfwScore > 0.5 for big_boobs.cropped.png got OpenNsfwScore %f", result.OpenNsfwScore)
+	}
+}
+
+// support method for tests image recognition result
+func uploadFixtureAndGetResult(filePath string) (body []byte, err error) {
+	r, _ := os.Open(filePath)
 	values := map[string]io.Reader{
 		"image":  r,
 	}
 	form, contentType, err := createForm(values)
 	if err != nil {
-		t.Errorf("Error in create mulipart form %s", err.Error())
-		return
+		return body, err
 	}
 
 	req := httptest.NewRequest("POST", "/api/v1/detect", &form)
-	w := httptest.NewRecorder()
 	req.Header.Set("Content-Type", contentType)
 
+	w := httptest.NewRecorder()
 	ProceedImage(w, req)
 
 	resp := w.Result()
-	body, _ := ioutil.ReadAll(resp.Body)
-
-	textBody := string(body)
-
-	if strings.Contains(textBody, "open_nsfw_score") == false {
-		t.Errorf("Expected body with 'open_nsfw_score'. Got %s", textBody)
-	}
-
-	if strings.Contains(textBody, "image_name") == false {
-		t.Errorf("Expected body with 'image_name'. Got %s", textBody)
-	}
+	return ioutil.ReadAll(resp.Body)
 }
 
 // support method for tests
