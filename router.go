@@ -12,6 +12,9 @@ type Router struct {
 func (router Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/api/v1/detect":
+		// allow ajax reponses from browser
+		w.Header().Set("Access-Control-Allow-Origin", router.cfg.CorsOrigin)
+
 		ProceedImage(w, r)
 	default:
 		ShowForm(w)

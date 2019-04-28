@@ -10,6 +10,7 @@ const VERSION = "0.2.0"
 
 type Params struct {
 	Port    string `env:"PORT" envDefault:"9191"`
+	CorsOrigin    string `env:"CORS_ORIGIN" envDefault:"*"`
 }
 
 func main() {
