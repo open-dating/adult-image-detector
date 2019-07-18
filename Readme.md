@@ -1,4 +1,6 @@
 ### adult-image-detector
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/grinat/adult-image-detector)
+
 Use deep neural networks and other algos for detect nude images. 
 
 [Try detection](https://adult-image-detector.herokuapp.com/)
@@ -44,7 +46,9 @@ docker-compose up
 ```
 
 ### Install to heroku
-Fork, create app and change stack to container
+Use deploy button or:
+
+fork, create app and change stack to container
 ```
 heroku stack:set container
 ```
