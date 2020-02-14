@@ -23,7 +23,7 @@ Result:
 ### Docker
 #### Run
 ```
-docker run -p 9191:9191 open-dating/adult-image-detector
+docker run -p 9191:9191 opendating/adult-image-detector
 ```
 
 #### Build
