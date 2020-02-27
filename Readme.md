@@ -1,5 +1,7 @@
 ### adult-image-detector
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/open-dating/adult-image-detector)
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/open-dating/adult-image-detector) 
+[![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/opendating/adult-image-detector)](https://hub.docker.com/repository/docker/opendating/adult-image-detector)
+
 
 Use deep neural networks and other algos for detect nude images. 
 
