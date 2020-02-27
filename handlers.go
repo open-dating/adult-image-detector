@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -14,37 +15,46 @@ type ImageScoringResult struct {
 
 // save uploaded image and get scoring
 func ProceedImage(w http.ResponseWriter, r *http.Request)  {
-	// save image
-	filePath, imageName, err := SaveUploadFile(r)
+	// save image and get options
+	parsedForm, err := HandleUploadFileForm(r)
 	if err != nil {
 		HandleError(w, err)
 		return
 	}
 
-	// get yahoo open nfsw score
-	openNsfwScore, err := GetOpenNsfwScore(filePath)
-	if err != nil {
-		HandleError(w, err)
-		return
-	}
+	log.Printf("Uploaded file %s, saved as %s", parsedForm.Filename, parsedForm.SaveAsFilename)
 
-	// get An Algorithm for Nudity Detection
-	anAlgorithmForNudityDetection, err := getAnAlgorithmForNudityDetectionResult(filePath)
-	if err != nil {
-		HandleError(w, err)
-		return
-	}
-
-	// prepare result
 	res := ImageScoringResult{
-		OpenNsfwScore: openNsfwScore,
-		AnAlgorithmForNudityDetection: anAlgorithmForNudityDetection,
-		ImageName: imageName,
+		ImageName: parsedForm.Filename,
 		AppVersion: VERSION,
 	}
 
+	if parsedForm.disableOpenNsfw == false {
+		// get yahoo open nfsw score
+		openNsfwScore, err := GetOpenNsfwScore(parsedForm.FilePath)
+		if err != nil {
+			HandleError(w, err)
+			return
+		}
+		res.OpenNsfwScore = openNsfwScore
+
+		log.Printf("For file %s, openNsfwScore=%f", parsedForm.SaveAsFilename, openNsfwScore)
+	}
+
+	if parsedForm.disableAnAlgorithm == false {
+		// get An Algorithm for Nudity Detection
+		anAlgorithmForNudityDetection, err := getAnAlgorithmForNudityDetectionResult(parsedForm.FilePath, parsedForm.debug)
+		if err != nil {
+			HandleError(w, err)
+			return
+		}
+		res.AnAlgorithmForNudityDetection = anAlgorithmForNudityDetection
+
+		log.Printf("For file %s, anAlgorithmForNudityDetection=%t", parsedForm.SaveAsFilename, anAlgorithmForNudityDetection)
+	}
+
 	// remove uploaded file
-	RemoveFile(filePath)
+	RemoveFile(parsedForm.FilePath)
 
 	// serialize answer
 	js, err := json.Marshal(res)
@@ -69,7 +79,15 @@ func ShowForm(w http.ResponseWriter)  {
 	<body>
 		<form action="/api/v1/detect" method="post" enctype="multipart/form-data">
 			<label>Select image file</label>
-			<input type="file" name="image" required accept="image/*">
+			<input type="file" name="image" required accept="image/*"><br/>
+			
+			<label>
+				<input type="checkbox" value="true" name="disableOpenNsfw"> disable open nsfw
+			</label><br/>
+			<label>
+				<input type="checkbox" value="true" name="disableAnAlgorithm"> disable an algorithm
+			</label><br/>
+			
 			<button type="submit">Calc nude scores</button>
 		</form>
 		<pre>

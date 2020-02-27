@@ -13,9 +13,6 @@ import (
 
 // get score from yahoo open nsfw https://github.com/yahoo/open_nsfw
 func GetOpenNsfwScore(filePath string) (score float32, err error) {
-	// TODO need resize?
-	// TODO need caffe transforms?
-	// TODO need remove file on error?
 	img := gocv.IMRead(filePath, gocv.IMReadColor)
 	if img.Empty() {
 		RemoveFile(filePath)
@@ -59,7 +56,7 @@ func GetOpenNsfwScore(filePath string) (score float32, err error) {
 }
 
 // get result from An Algorithm for Nudity Detection by Rigan Ap-apid
-func getAnAlgorithmForNudityDetectionResult(filePath string) (result bool, err error)  {
+func getAnAlgorithmForNudityDetectionResult(filePath string, debug bool) (result bool, err error)  {
 	existingImageFile, err := os.Open(filePath)
 	if err != nil {
 		return true, errors.New("Cant open file")
@@ -72,9 +69,9 @@ func getAnAlgorithmForNudityDetectionResult(filePath string) (result bool, err e
 		return true, errors.New("Decode err")
 	}
 
-	// TODO write go implemntation of algo
 	anAlg := AnAlgorithm{
 		img:imageData,
+		debug:debug,
 	}
 	return anAlg.IsNude()
 }

@@ -29,6 +29,7 @@ type AnAlgorithm struct {
 	regions              [] AnAlgorithmRegion
 	regionsContours      [][] image.Point
 	boundsPoly           AnAlgorithmBoundsPolygon
+	debug 				 bool
 }
 
 type AnAlgorithmRegion struct {
@@ -238,12 +239,16 @@ func (a *AnAlgorithm) IsNude() (bool, error) {
 	totalSkinPortion := float32(a.skinPixelCount) / float32(totalPixelCount)
 
 	if totalPixelCount == 0 {
-		fmt.Println("No pixels found")
+		if a.debug {
+			fmt.Println("No pixels found")
+		}
 		return false, nil
 	}
 
 	// Criteria (a)
-	fmt.Println("a: totalSkinPortion=", totalSkinPortion, " < 0.15")
+	if a.debug {
+		fmt.Println("a: totalSkinPortion=", totalSkinPortion, " < 0.15")
+	}
 	if totalSkinPortion < 0.15 {
 		return false, nil
 	}
@@ -260,13 +265,17 @@ func (a *AnAlgorithm) IsNude() (bool, error) {
 	}
 
 	// Criteria (b)
-	fmt.Println("b: largestRegionPortion=", largestRegionPortion, " < 0.35 && nextRegionPortion=", nextRegionPortion, " < 0.30 && thirdRegionPortion=", thirdRegionPortion, " < 0.30")
+	if a.debug {
+		fmt.Println("b: largestRegionPortion=", largestRegionPortion, " < 0.35 && nextRegionPortion=", nextRegionPortion, " < 0.30 && thirdRegionPortion=", thirdRegionPortion, " < 0.30")
+	}
 	if largestRegionPortion < 0.35 && nextRegionPortion < 0.30 && thirdRegionPortion < 0.30 {
 		return false, nil
 	}
 
 	// Criteria (c)
-	fmt.Println("c: largestRegionPortion=", largestRegionPortion, " < 0.45")
+	if a.debug {
+		fmt.Println("c: largestRegionPortion=", largestRegionPortion, " < 0.45")
+	}
 	if largestRegionPortion < 0.45 {
 		return false, nil
 	}
@@ -275,22 +284,30 @@ func (a *AnAlgorithm) IsNude() (bool, error) {
 	a.findBoundsPolyCorners()
 	a.createBoundsPolyAndCalcSkins()
 
-	fmt.Println("d: totalSkinPortion=", totalSkinPortion, " < 0.30")
+	if a.debug {
+		fmt.Println("d: totalSkinPortion=", totalSkinPortion, " < 0.30")
+	}
 	if totalSkinPortion < 0.30 {
 		boundsPolySkinPortion := float64(a.boundsPoly.skinPixelCount) / a.boundsPoly.area
 
-		fmt.Println("d: boundsPolySkinPortion=", boundsPolySkinPortion, " < 0.55")
+		if a.debug {
+			fmt.Println("d: boundsPolySkinPortion=", boundsPolySkinPortion, " < 0.55")
+		}
 		if boundsPolySkinPortion < 0.55 {
 			return false, nil
 		}
 	}
 
 	// Criteria (e)
-	fmt.Println("e: len(a.regions)=", len(a.regions), " > 60")
+	if a.debug {
+		fmt.Println("e: len(a.regions)=", len(a.regions), " > 60")
+	}
 	if len(a.regions) > 60 {
 		a.findAverageSkinsIntensityInBoundsPoly()
 
-		fmt.Println("e: boundsPoly.avgSkinsIntensity=", a.boundsPoly.avgSkinsIntensity, " < 0.25")
+		if a.debug {
+			fmt.Println("e: boundsPoly.avgSkinsIntensity=", a.boundsPoly.avgSkinsIntensity, " < 0.25")
+		}
 		if a.boundsPoly.avgSkinsIntensity < 0.25 {
 			return false, nil
 		}

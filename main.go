@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-const VERSION = "0.3.1"
+const VERSION = "0.3.5"
 
 type Params struct {
 	Port    string `env:"PORT" envDefault:"9191"`
