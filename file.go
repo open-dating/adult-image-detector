@@ -2,26 +2,61 @@ package main
 
 import (
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
-	"github.com/google/uuid"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/pdfcpu/pdfcpu/pkg/api"
 )
 
 type UploadedFileInfo struct {
-	FilePath 			string
-	Filename 			string
-	FileExt  			string
-	SaveAsFilename      string
-	disableOpenNsfw 	bool
-	disableAnAlgorithm 	bool
-	debug               bool
+	FilePath           string
+	Filename           string
+	FileExt            string
+	SaveAsFilename     string
+	disableOpenNsfw    bool
+	disableAnAlgorithm bool
+	debug              bool
+}
+
+func getImagesFromPDF(fp string) ([]string, string, error) {
+	var extractedImages []string
+	dir, err := ioutil.TempDir(os.TempDir(), "adult-image-detector-*-pdf")
+	if err != nil {
+		return nil, "", err
+	}
+
+	if err := api.ExtractImagesFile(fp, dir, nil, nil); err != nil {
+		return nil, "", err
+	}
+
+	files, err := ioutil.ReadDir(dir)
+	if err != nil {
+		return nil, "", err
+	}
+
+	for _, v := range files {
+		if isImage(v.Name()) {
+			extractedImages = append(extractedImages, filepath.Join(dir, v.Name()))
+		}
+	}
+
+	return extractedImages, dir, nil
+}
+
+func isImage(name string) bool {
+	parts := strings.Split(name, ".")
+	fileExt := strings.ToLower(parts[len(parts)-1])
+
+	return fileExt == "jpg" || fileExt == "jpeg" || fileExt == "png" || fileExt == "gif"
 }
 
 // procced multipart form and save file
-func HandleUploadFileForm(r *http.Request) (parsedForm UploadedFileInfo, err error)  {
+func HandleUploadFileForm(r *http.Request) (parsedForm UploadedFileInfo, err error) {
 	r.ParseMultipartForm(32 << 20)
 	file, handler, err := r.FormFile("image")
 	if err != nil {
@@ -30,7 +65,7 @@ func HandleUploadFileForm(r *http.Request) (parsedForm UploadedFileInfo, err err
 	defer file.Close()
 
 	parts := strings.Split(handler.Filename, ".")
-	fileExt := parts[len(parts) - 1]
+	fileExt := parts[len(parts)-1]
 
 	parsedForm.SaveAsFilename = time.Now().Format(time.RFC3339) + "_" + uuid.New().String() + "." + fileExt
 
@@ -48,6 +83,7 @@ func HandleUploadFileForm(r *http.Request) (parsedForm UploadedFileInfo, err err
 
 	parsedForm.Filename = handler.Filename
 	parsedForm.FilePath = filePath
+	parsedForm.FileExt = fileExt
 
 	parsedForm.disableAnAlgorithm = r.FormValue("disableAnAlgorithm") != ""
 	parsedForm.disableOpenNsfw = r.FormValue("disableOpenNsfw") != ""
@@ -58,7 +94,7 @@ func HandleUploadFileForm(r *http.Request) (parsedForm UploadedFileInfo, err err
 
 // remove file
 func RemoveFile(filePath string) {
-	err := os.Remove(filePath)
+	err := os.RemoveAll(filePath)
 	if err != nil {
 		panic(err)
 	}

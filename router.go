@@ -16,6 +16,9 @@ func (router Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", router.cfg.CorsOrigin)
 
 		ProceedImage(w, r)
+	case "/api/v1/pdf_detect":
+		w.Header().Set("Access-Control-Allow-Origin", router.cfg.CorsOrigin)
+		proceedPDF(w, r)
 	default:
 		ShowForm(w)
 	}
