@@ -62,7 +62,7 @@ WORKDIR $GOPATH
 FROM gocv AS adult-image-detector
 
 
-WORKDIR $GOPATH/src/adult-image-detector
+WORKDIR $GOPATH/src/nsfw-image-detector
 
 COPY ./ ./
 
