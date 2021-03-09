@@ -61,11 +61,10 @@ WORKDIR $GOPATH
 #########################
 FROM gocv AS adult-image-detector
 
-RUN git clone https://github.com/joicemjoseph/adult-image-detector --recursive "$GOPATH/src/adult-image-detector" &&  cd adult-image-detector && git checkout feat/pdf-detect
 
 WORKDIR $GOPATH/src/adult-image-detector
 
-COPY . .
+COPY ./ ./
 
 RUN chmod -R 777 "$GOPATH/src/adult-image-detector/uploads"
 

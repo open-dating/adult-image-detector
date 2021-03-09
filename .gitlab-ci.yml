@@ -1,0 +1,33 @@
+stages:
+  - build
+
+# note: we make cache global to reuse it across all jobs and stages.
+cache:
+  paths:
+    - .cache # define cache folders
+
+build_image:
+  image: docker:19.03.1
+  stage: build
+  services:
+    - docker:19.03.1-dind
+  tags:
+    - dind
+    - ecr
+  variables:
+      DOCKER_HOST: tcp://docker:2375
+      DOCKER_TLS_CERTDIR: ""
+      IMAGE: 542983366541.dkr.ecr.ap-south-1.amazonaws.com/zerodha/nsfw-detector:$CI_COMMIT_TAG
+  before_script:
+    - mkdir -p .cache
+    - apk add --no-cache python py-pip
+    - pip install awscli
+    - $(aws ecr get-login --no-include-email --region ap-south-1)
+  script:
+    - docker build --build-arg CI_BUILD_TOKEN=$CI_BUILD_TOKEN -t $IMAGE -f Dockerfile .
+    - docker images
+    - docker push $IMAGE
+  only:
+    refs:
+      - tags
+
