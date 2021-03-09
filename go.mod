@@ -1,4 +1,4 @@
-module go.zerodha.tech/common/adult-image-detector
+module go.zerodha.tech/common/nsfw-image-detector
 
 go 1.14
 

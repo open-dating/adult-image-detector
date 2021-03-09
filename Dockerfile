@@ -66,10 +66,10 @@ WORKDIR $GOPATH/src/adult-image-detector
 
 COPY ./ ./
 
-RUN chmod -R 777 "$GOPATH/src/adult-image-detector/uploads"
+RUN chmod -R 777 "$GOPATH/src/nsfw-image-detector/uploads"
 
 RUN go mod tidy && go build
 
 EXPOSE 9191
 
-CMD ["/go/src/adult-image-detector/adult-image-detector"]
+CMD ["/go/src/nsfw-image-detector/nsfw-image-detector"]
