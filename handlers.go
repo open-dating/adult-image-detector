@@ -2,10 +2,14 @@ package main
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
+
+	"gocv.io/x/gocv"
 )
 
 type ImageScoringResult struct {
@@ -27,10 +31,16 @@ type pdfResponse struct {
 	ImageScoringDisabled        bool                  `json:"image_scoring_disabled"`
 	ImageName                   string                `json:"image_name"`
 	AlgorithmForNudityDetection bool                  `json:"an_algorithm_for_nudity_detection"`
+	OpenNsfwScore               float32               `json:"open_nsfw_score,omitempty"`
 }
 
 func proceedPDF(w http.ResponseWriter, r *http.Request) {
-	parsedForm, err := HandleUploadFileForm(r)
+	dir, err := ioutil.TempDir(os.TempDir(), "adult-image-detector-*-pdf")
+	if err != nil {
+		HandleError(w, err)
+		return
+	}
+	parsedForm, err := HandleUploadFileForm(r, dir)
 	if err != nil {
 		HandleError(w, err)
 		return
@@ -41,7 +51,7 @@ func proceedPDF(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	images, dir, err := getImagesFromPDF(parsedForm.FilePath)
+	images, dir, err := getImagesFromPDF(parsedForm.FilePath, dir, parsedForm.password)
 	if err != nil {
 		HandleError(w, err)
 		return
@@ -56,14 +66,33 @@ func proceedPDF(w http.ResponseWriter, r *http.Request) {
 
 	var res = make(map[string]testResult)
 
+	protoPath, _ := filepath.Abs("./models/open_nsfw/nsfw_model/deploy.prototxt")
+	modelPath, _ := filepath.Abs("./models/open_nsfw/nsfw_model/resnet_50_1by2_nsfw.caffemodel")
+
+	net := gocv.ReadNetFromCaffe(
+		protoPath,
+		modelPath,
+	)
+	if net.Empty() {
+		HandleError(w, err)
+		return
+	}
+
+	defer net.Close()
+
 	for _, v := range images {
 		var r testResult
 		// r.ImageName = v
 		if !parsedForm.disableOpenNsfw {
-			openNsfwScore, err := GetOpenNsfwScore(v)
+			openNsfwScore, err := GetOpenNsfwScore(v, net)
 			if err != nil {
 				continue
 			}
+
+			if body.OpenNsfwScore < openNsfwScore {
+				body.OpenNsfwScore = openNsfwScore
+			}
+
 			r.OpenNsfwScore = openNsfwScore
 		}
 
@@ -102,8 +131,16 @@ func proceedPDF(w http.ResponseWriter, r *http.Request) {
 
 // save uploaded image and get scoring
 func ProceedImage(w http.ResponseWriter, r *http.Request) {
+	dir, err := ioutil.TempDir(os.TempDir(), "adult-image-detector-*-image")
+	if err != nil {
+		HandleError(w, err)
+		return
+	}
+
+	defer RemoveFile(dir)
+
 	// save image and get options
-	parsedForm, err := HandleUploadFileForm(r)
+	parsedForm, err := HandleUploadFileForm(r, dir)
 	if err != nil {
 		HandleError(w, err)
 		return
@@ -116,9 +153,23 @@ func ProceedImage(w http.ResponseWriter, r *http.Request) {
 		AppVersion: VERSION,
 	}
 
+	protoPath, _ := filepath.Abs("./models/open_nsfw/nsfw_model/deploy.prototxt")
+	modelPath, _ := filepath.Abs("./models/open_nsfw/nsfw_model/resnet_50_1by2_nsfw.caffemodel")
+
+	net := gocv.ReadNetFromCaffe(
+		protoPath,
+		modelPath,
+	)
+	if net.Empty() {
+		HandleError(w, err)
+		return
+	}
+
+	defer net.Close()
+
 	if parsedForm.disableOpenNsfw == false {
 		// get yahoo open nfsw score
-		openNsfwScore, err := GetOpenNsfwScore(parsedForm.FilePath)
+		openNsfwScore, err := GetOpenNsfwScore(parsedForm.FilePath, net)
 		if err != nil {
 			HandleError(w, err)
 			return
@@ -144,14 +195,14 @@ func ProceedImage(w http.ResponseWriter, r *http.Request) {
 	RemoveFile(parsedForm.FilePath)
 
 	// serialize answer
-	js, err := json.Marshal(res)
+	out, err := json.Marshal(res)
 	if err != nil {
 		HandleError(w, err)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(js)
+	w.Write(out)
 }
 
 // error handling

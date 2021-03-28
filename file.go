@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pdfcpu/pdfcpu/pkg/api"
+	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu"
 )
 
 type UploadedFileInfo struct {
@@ -21,16 +22,17 @@ type UploadedFileInfo struct {
 	disableOpenNsfw    bool
 	disableAnAlgorithm bool
 	debug              bool
+	password           string
 }
 
-func getImagesFromPDF(fp string) ([]string, string, error) {
+func getImagesFromPDF(fp, dir, password string) ([]string, string, error) {
 	var extractedImages []string
-	dir, err := ioutil.TempDir(os.TempDir(), "adult-image-detector-*-pdf")
-	if err != nil {
-		return nil, "", err
-	}
 
-	if err := api.ExtractImagesFile(fp, dir, nil, nil); err != nil {
+	if err := api.ExtractImagesFile(fp, dir, nil, &pdfcpu.Configuration{
+		Reader15:         true,
+		DecodeAllStreams: true,
+		UserPW:           password,
+	}); err != nil {
 		return nil, "", err
 	}
 
@@ -56,7 +58,7 @@ func isImage(name string) bool {
 }
 
 // procced multipart form and save file
-func HandleUploadFileForm(r *http.Request) (parsedForm UploadedFileInfo, err error) {
+func HandleUploadFileForm(r *http.Request, dir string) (parsedForm UploadedFileInfo, err error) {
 	r.ParseMultipartForm(32 << 20)
 	file, handler, err := r.FormFile("image")
 	if err != nil {
@@ -69,7 +71,7 @@ func HandleUploadFileForm(r *http.Request) (parsedForm UploadedFileInfo, err err
 
 	parsedForm.SaveAsFilename = time.Now().Format(time.RFC3339) + "_" + uuid.New().String() + "." + fileExt
 
-	filePath, err := filepath.Abs("./uploads/" + parsedForm.SaveAsFilename)
+	filePath, err := filepath.Abs(filepath.Join(dir, parsedForm.SaveAsFilename))
 	if err != nil {
 		return parsedForm, err
 	}
@@ -78,6 +80,7 @@ func HandleUploadFileForm(r *http.Request) (parsedForm UploadedFileInfo, err err
 	if err != nil {
 		return parsedForm, err
 	}
+
 	defer f.Close()
 	io.Copy(f, file)
 
@@ -88,7 +91,7 @@ func HandleUploadFileForm(r *http.Request) (parsedForm UploadedFileInfo, err err
 	parsedForm.disableAnAlgorithm = r.FormValue("disableAnAlgorithm") != ""
 	parsedForm.disableOpenNsfw = r.FormValue("disableOpenNsfw") != ""
 	parsedForm.debug = r.FormValue("debug") != ""
-
+	parsedForm.password = r.FormValue("password")
 	return parsedForm, nil
 }
 
