@@ -5,6 +5,8 @@ services:
     build:
       context: ../../
       dockerfile: Dockerfile
+      args:
+        tests: "skip_on_build"
     volumes:
     - ../../:/go/src/adult-image-detector
-    command: "sh -c 'govendor sync && go test'"
+    command: "sh -c 'go test'"

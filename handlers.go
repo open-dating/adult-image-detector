@@ -208,7 +208,10 @@ func proceedImage(w http.ResponseWriter, r *http.Request) {
 
 // HandleError handles http error.
 func HandleError(w http.ResponseWriter, err error) {
-	http.Error(w, err.Error(), 500)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.WriteHeader(500)
+	fmt.Fprintln(w, err.Error())
 }
 
 // ShowImageForm to upload jpg image.
@@ -243,8 +246,8 @@ func ShowPDFForm(w http.ResponseWriter) {
 	form := `
 <html>
 	<body>
-		<form action="/api/v1/detect_pdf" method="post" enctype="multipart/form-data">
-			<label>Select image file</label>
+		<form action="/api/v1/pdf_detect" method="post" enctype="multipart/form-data">
+			<label>Select pdf file</label>
 			<input type="file" name="pdf" required accept="application/pdf"><br/>
 			
 			<label>
@@ -253,11 +256,17 @@ func ShowPDFForm(w http.ResponseWriter) {
 			<label>
 				<input type="checkbox" value="true" name="disableAnAlgorithm"> disable an algorithm
 			</label><br/>
+			<label>
+				<input type="checkbox" value="true" name="debug"> debug
+			</label><br/>
+			<label>
+				<input type="text" value="" name="password"> file password
+			</label><br/>
 			
 			<button type="submit">Calc nude scores</button>
 		</form>
 		<pre>
-curl -i -X POST -F "image=@Daddy_Lets_Me_Ride_His_Cock_preview_720p.mp4.pdf" http://localhost:9191/api/v1/detect_pdf
+curl -i -X POST -F "image=@Daddy_Lets_Me_Ride_His_Cock_preview_720p.mp4.pdf" http://localhost:9191/api/v1/pdf_detect
 		</pre>
 	</body>
 </html>

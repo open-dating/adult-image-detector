@@ -37,7 +37,15 @@ func (rtr *router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 	default:
-		HandleError(w, fmt.Errorf("bad request. Invalid endpoint"))
+		HandleError(w, fmt.Errorf(`
+		<html>
+          <body>
+			Bad request. Invalid endpoint. Avalaibled endpoints:
+            <div><a href="/api/v1/detect">/api/v1/detect</a> - for detect in image</div>
+            <div><a href="/api/v1/pdf_detect">/api/v1/pdf_detect</a> - for detect in pdf</div>
+          </body>
+		</html>
+		`))
 		return
 	}
 }

@@ -61,21 +61,23 @@ WORKDIR $GOPATH
 #########################
 FROM gocv AS adult-image-detector
 
-
-RUN go get -u github.com/kardianos/govendor
-RUN go get github.com/pilu/fresh
-
-RUN git clone https://github.com/grinat/adult-image-detector --recursive "$GOPATH/src/adult-image-detector"
+RUN go get -u github.com/pilu/fresh
 
 WORKDIR $GOPATH/src/adult-image-detector
 
-
 COPY ./ ./
 
-RUN go test
+ARG tests
+RUN  if  test $tests = 'skip_on_build'; then \
+        echo "run tests skipped!"; \
+     else \
+        echo "run tests!"; \
+        go test; \
+     fi
+
 RUN go mod tidy && go build
 
 EXPOSE 9191
 
- CMD ["/go/src/adult-image-detector/adult-image-detector"]
+CMD ["/go/src/adult-image-detector/nsfw-image-detector"]
  
