@@ -13,10 +13,10 @@ import (
 	"testing"
 )
 
-func TestShowForm(t *testing.T)  {
+func TestShowForm(t *testing.T) {
 	w := httptest.NewRecorder()
 
-	ShowForm(w)
+	ShowImageForm(w)
 
 	resp := w.Result()
 	body, _ := ioutil.ReadAll(resp.Body)
@@ -28,13 +28,13 @@ func TestShowForm(t *testing.T)  {
 	}
 }
 
-func TestProceedImage(t *testing.T)  {
-    // forest.jpg
+func TestProceedImage(t *testing.T) {
+	// forest.jpg
 	body, err := uploadFixtureAndGetResult("./fixtures/forest.jpg")
 	if err != nil {
 		t.Error("Image upload err:", err.Error())
 	}
-	result := ImageScoringResult{}
+	result := imageScoringResult{}
 	err = json.Unmarshal(body, &result)
 	if err != nil {
 		t.Errorf("Expected body with json. Got %s", string(body))
@@ -46,12 +46,12 @@ func TestProceedImage(t *testing.T)  {
 		t.Errorf("Expected OpenNsfwScore < 0.15 for forest got OpenNsfwScore %f", result.OpenNsfwScore)
 	}
 
-    // big_boobs.cropped.png
+	// big_boobs.cropped.png
 	body, err = uploadFixtureAndGetResult("./fixtures/big_boobs.cropped.png")
 	if err != nil {
 		t.Error("Image upload err:", err.Error())
 	}
-	result = ImageScoringResult{}
+	result = imageScoringResult{}
 	err = json.Unmarshal(body, &result)
 	if err != nil {
 		t.Errorf("Expected body with json. Got %s", string(body))
@@ -68,7 +68,7 @@ func TestProceedImage(t *testing.T)  {
 func uploadFixtureAndGetResult(filePath string) (body []byte, err error) {
 	r, _ := os.Open(filePath)
 	values := map[string]io.Reader{
-		"image":  r,
+		"image": r,
 	}
 	form, contentType, err := createForm(values)
 	if err != nil {
@@ -79,14 +79,14 @@ func uploadFixtureAndGetResult(filePath string) (body []byte, err error) {
 	req.Header.Set("Content-Type", contentType)
 
 	w := httptest.NewRecorder()
-	ProceedImage(w, req)
+	proceedImage(w, req)
 
 	resp := w.Result()
 	return ioutil.ReadAll(resp.Body)
 }
 
 // support method for tests
-func createForm(values map[string]io.Reader) (b bytes.Buffer, contentType string, err error)  {
+func createForm(values map[string]io.Reader) (b bytes.Buffer, contentType string, err error) {
 	form := multipart.NewWriter(&b)
 	for key, r := range values {
 		var fw io.Writer

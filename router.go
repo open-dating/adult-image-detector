@@ -5,32 +5,39 @@ import (
 	"net/http"
 )
 
-type Router struct {
-	cfg Params
+// router routes requests
+type router struct {
+	cfg params
 }
 
 // handler http responses
-func (router Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (rtr *router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/api/v1/detect":
-		if r.Method != http.MethodPost {
-			HandleError(w, fmt.Errorf("bad request. make http POST request instead"))
-			return
+		switch r.Method {
+		case http.MethodPost:
+			// allow ajax reponses from browser
+			w.Header().Set("Access-Control-Allow-Origin", rtr.cfg.CorsOrigin)
+
+			proceedImage(w, r)
+		default:
+			ShowImageForm(w)
 		}
 
-		// allow ajax reponses from browser
-		w.Header().Set("Access-Control-Allow-Origin", router.cfg.CorsOrigin)
-
-		ProceedImage(w, r)
 	case "/api/v1/pdf_detect":
-		if r.Method != http.MethodPost {
+		switch r.Method {
+		case http.MethodPost:
+			w.Header().Set("Access-Control-Allow-Origin", rtr.cfg.CorsOrigin)
+			proceedPDF(w, r)
+		case http.MethodGet:
+			ShowPDFForm(w)
+		default:
 			HandleError(w, fmt.Errorf("bad request. make http POST request instead"))
 			return
 		}
 
-		w.Header().Set("Access-Control-Allow-Origin", router.cfg.CorsOrigin)
-		proceedPDF(w, r)
 	default:
-		ShowForm(w)
+		HandleError(w, fmt.Errorf("bad request. Invalid endpoint"))
+		return
 	}
 }

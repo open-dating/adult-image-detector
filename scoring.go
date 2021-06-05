@@ -12,7 +12,7 @@ import (
 )
 
 // get score from yahoo open nsfw https://github.com/yahoo/open_nsfw
-func GetOpenNsfwScore(filePath string, net gocv.Net) (score float32, err error) {
+func getOpenNsfwScore(filePath string, net gocv.Net) (score float32, err error) {
 	img := gocv.IMRead(filePath, gocv.IMReadColor)
 	if img.Empty() {
 		return 0, errors.New("Invalid image")
@@ -53,7 +53,7 @@ func getAnAlgorithmForNudityDetectionResult(filePath string, debug bool) (result
 		return true, errors.New("Decode err")
 	}
 
-	anAlg := AnAlgorithm{
+	anAlg := anAlgorithm{
 		img:   imageData,
 		debug: debug,
 	}

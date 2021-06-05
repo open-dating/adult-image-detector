@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -12,7 +13,7 @@ import (
 	"gocv.io/x/gocv"
 )
 
-type ImageScoringResult struct {
+type imageScoringResult struct {
 	AppVersion                    string  `json:"app_version"`
 	OpenNsfwScore                 float32 `json:"open_nsfw_score"`
 	AnAlgorithmForNudityDetection bool    `json:"an_algorithm_for_nudity_detection"`
@@ -40,14 +41,14 @@ func proceedPDF(w http.ResponseWriter, r *http.Request) {
 		HandleError(w, err)
 		return
 	}
-	parsedForm, err := HandleUploadFileForm(r, dir)
+	parsedForm, err := uploadFileFormHandler(r, dir, "pdf")
 	if err != nil {
 		HandleError(w, err)
 		return
 	}
 
 	if parsedForm.FileExt != strings.ToLower("pdf") {
-		ProceedImage(w, r)
+		HandleError(w, fmt.Errorf("bad request. Invalid file type"))
 		return
 	}
 
@@ -84,7 +85,7 @@ func proceedPDF(w http.ResponseWriter, r *http.Request) {
 		var r testResult
 		// r.ImageName = v
 		if !parsedForm.disableOpenNsfw {
-			openNsfwScore, err := GetOpenNsfwScore(v, net)
+			openNsfwScore, err := getOpenNsfwScore(v, net)
 			if err != nil {
 				continue
 			}
@@ -115,8 +116,8 @@ func proceedPDF(w http.ResponseWriter, r *http.Request) {
 	body.Result = res
 
 	// remove uploaded file
-	RemoveFile(parsedForm.FilePath)
-	RemoveFile(dir)
+	removeFile(parsedForm.FilePath)
+	removeFile(dir)
 
 	// serialize answer
 	out, err := json.Marshal(body)
@@ -130,17 +131,17 @@ func proceedPDF(w http.ResponseWriter, r *http.Request) {
 }
 
 // save uploaded image and get scoring
-func ProceedImage(w http.ResponseWriter, r *http.Request) {
+func proceedImage(w http.ResponseWriter, r *http.Request) {
 	dir, err := ioutil.TempDir(os.TempDir(), "adult-image-detector-*-image")
 	if err != nil {
 		HandleError(w, err)
 		return
 	}
 
-	defer RemoveFile(dir)
+	defer removeFile(dir)
 
 	// save image and get options
-	parsedForm, err := HandleUploadFileForm(r, dir)
+	parsedForm, err := uploadFileFormHandler(r, dir, "image")
 	if err != nil {
 		HandleError(w, err)
 		return
@@ -148,7 +149,7 @@ func ProceedImage(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Uploaded file %s, saved as %s", parsedForm.Filename, parsedForm.SaveAsFilename)
 
-	res := ImageScoringResult{
+	res := imageScoringResult{
 		ImageName:  parsedForm.Filename,
 		AppVersion: VERSION,
 	}
@@ -169,7 +170,7 @@ func ProceedImage(w http.ResponseWriter, r *http.Request) {
 
 	if parsedForm.disableOpenNsfw == false {
 		// get yahoo open nfsw score
-		openNsfwScore, err := GetOpenNsfwScore(parsedForm.FilePath, net)
+		openNsfwScore, err := getOpenNsfwScore(parsedForm.FilePath, net)
 		if err != nil {
 			HandleError(w, err)
 			return
@@ -192,7 +193,7 @@ func ProceedImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// remove uploaded file
-	RemoveFile(parsedForm.FilePath)
+	removeFile(parsedForm.FilePath)
 
 	// serialize answer
 	out, err := json.Marshal(res)
@@ -205,13 +206,13 @@ func ProceedImage(w http.ResponseWriter, r *http.Request) {
 	w.Write(out)
 }
 
-// error handling
+// HandleError handles http error.
 func HandleError(w http.ResponseWriter, err error) {
 	http.Error(w, err.Error(), 500)
 }
 
-// show form for upload file
-func ShowForm(w http.ResponseWriter) {
+// ShowImageForm to upload jpg image.
+func ShowImageForm(w http.ResponseWriter) {
 	form := `
 <html>
 	<body>
@@ -230,6 +231,33 @@ func ShowForm(w http.ResponseWriter) {
 		</form>
 		<pre>
 curl -i -X POST -F "image=@Daddy_Lets_Me_Ride_His_Cock_preview_720p.mp4.jpg" http://localhost:9191/api/v1/detect
+		</pre>
+	</body>
+</html>
+`
+	w.Write([]byte(form))
+}
+
+// ShowPDFForm to upload pdf file.
+func ShowPDFForm(w http.ResponseWriter) {
+	form := `
+<html>
+	<body>
+		<form action="/api/v1/detect_pdf" method="post" enctype="multipart/form-data">
+			<label>Select image file</label>
+			<input type="file" name="pdf" required accept="application/pdf"><br/>
+			
+			<label>
+				<input type="checkbox" value="true" name="disableOpenNsfw"> disable open nsfw
+			</label><br/>
+			<label>
+				<input type="checkbox" value="true" name="disableAnAlgorithm"> disable an algorithm
+			</label><br/>
+			
+			<button type="submit">Calc nude scores</button>
+		</form>
+		<pre>
+curl -i -X POST -F "image=@Daddy_Lets_Me_Ride_His_Cock_preview_720p.mp4.pdf" http://localhost:9191/api/v1/detect_pdf
 		</pre>
 	</body>
 </html>

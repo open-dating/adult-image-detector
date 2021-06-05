@@ -14,7 +14,7 @@ import (
 	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu"
 )
 
-type UploadedFileInfo struct {
+type uploadedFileInfo struct {
 	FilePath           string
 	Filename           string
 	FileExt            string
@@ -58,9 +58,9 @@ func isImage(name string) bool {
 }
 
 // procced multipart form and save file
-func HandleUploadFileForm(r *http.Request, dir string) (parsedForm UploadedFileInfo, err error) {
+func uploadFileFormHandler(r *http.Request, dir, formFile string) (parsedForm uploadedFileInfo, err error) {
 	r.ParseMultipartForm(32 << 20)
-	file, handler, err := r.FormFile("image")
+	file, handler, err := r.FormFile(formFile)
 	if err != nil {
 		return parsedForm, err
 	}
@@ -96,7 +96,7 @@ func HandleUploadFileForm(r *http.Request, dir string) (parsedForm UploadedFileI
 }
 
 // remove file
-func RemoveFile(filePath string) {
+func removeFile(filePath string) {
 	err := os.RemoveAll(filePath)
 	if err != nil {
 		panic(err)

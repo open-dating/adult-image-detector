@@ -62,14 +62,20 @@ WORKDIR $GOPATH
 FROM gocv AS adult-image-detector
 
 
+RUN go get -u github.com/kardianos/govendor
+RUN go get github.com/pilu/fresh
+
+RUN git clone https://github.com/grinat/adult-image-detector --recursive "$GOPATH/src/adult-image-detector"
+
 WORKDIR $GOPATH/src/nsfw-image-detector
+
 
 COPY ./ ./
 
-RUN chmod -R 777 "$GOPATH/src/nsfw-image-detector/uploads"
-
+RUN go test
 RUN go mod tidy && go build
 
 EXPOSE 9191
 
-CMD ["/go/src/nsfw-image-detector/nsfw-image-detector"]
+ CMD ["/go/src/adult-image-detector/adult-image-detector"]
+ 
