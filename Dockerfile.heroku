@@ -1,0 +1,23 @@
+# using precompiled version due to heroku has
+# docker compile timeout=15min
+FROM opendating/adult-image-detector:0.4.0
+
+RUN go get -u github.com/pilu/fresh
+
+WORKDIR $GOPATH/src/adult-image-detector
+
+COPY ./ ./
+
+ARG tests
+RUN  if  test $tests = 'skip_on_build'; then \
+        echo "run tests skipped!"; \
+     else \
+        echo "run tests!"; \
+        go test; \
+     fi
+
+RUN go mod tidy && go build
+
+EXPOSE 9191
+
+CMD ["/go/src/adult-image-detector/nsfw-image-detector"]
