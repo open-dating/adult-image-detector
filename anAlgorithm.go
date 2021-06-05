@@ -5,43 +5,44 @@ package main
 
 import (
 	"fmt"
-	"gocv.io/x/gocv"
 	"image"
 	"image/color"
 	"image/draw"
 	"sort"
+
+	"gocv.io/x/gocv"
 )
 
 const (
-	SkinCbMin = 80
-	SkinCbMax = 120
-	SkinCrMin = 133
-	SkinCrMax = 173
+	skinCbMin = 80
+	skinCbMax = 120
+	skinCrMin = 133
+	skinCrMax = 173
 )
 
-type AnAlgorithm struct {
+type anAlgorithm struct {
 	img                  image.Image
 	height               int
 	width                int
 	skinMap              image.Image
 	backgroundPixelCount int
 	skinPixelCount       int
-	regions              [] AnAlgorithmRegion
-	regionsContours      [][] image.Point
-	boundsPoly           AnAlgorithmBoundsPolygon
-	debug 				 bool
+	regions              []anAlgorithmRegion
+	regionsContours      [][]image.Point
+	boundsPoly           anAlgorithmBoundsPolygon
+	debug                bool
 }
 
-type AnAlgorithmRegion struct {
+type anAlgorithmRegion struct {
 	area    float64
-	contour [] image.Point
+	contour []image.Point
 }
 
-type AnAlgorithmBoundsPolygon struct {
+type anAlgorithmBoundsPolygon struct {
 	area              float64
-	contour           [] image.Point
+	contour           []image.Point
 	hue               float64
-	skinPixels        [] color.Color
+	skinPixels        []color.Color
 	skinPixelCount    int
 	avgSkinsIntensity float64
 	image             image.Image
@@ -51,14 +52,14 @@ type AnAlgorithmBoundsPolygon struct {
 
 // find skins on image and create mask with white/black regions
 // do manually, becouse have some trouble with gocv.InRange https://github.com/hybridgroup/gocv/issues/159
-func (a *AnAlgorithm) maskSkinAndCountSkinPixels() () {
+func (a *anAlgorithm) maskSkinAndCountSkinPixels() {
 	upLeft := image.Point{0, 0}
 	lowRight := image.Point{a.width, a.height}
 
 	a.skinMap = image.NewRGBA(image.Rectangle{upLeft, lowRight})
 
-	black := color.RGBA{0,0,0, 0xff}
-	white := color.RGBA{255,255,255, 0xff}
+	black := color.RGBA{0, 0, 0, 0xff}
+	white := color.RGBA{255, 255, 255, 0xff}
 
 	a.backgroundPixelCount = 0
 	a.skinPixelCount = 0
@@ -84,8 +85,8 @@ func (a *AnAlgorithm) maskSkinAndCountSkinPixels() () {
 	// jpeg.Encode(out, a.skinMap, nil)
 }
 
-func (a *AnAlgorithm) findRegions() {
-	img, _ := ImageToRGB8Mat(a.skinMap)
+func (a *anAlgorithm) findRegions() {
+	img, _ := imageToRGB8Mat(a.skinMap)
 
 	mask := gocv.NewMat()
 	gocv.InRangeWithScalar(img, gocv.NewScalar(0.0, 0.0, 0.0, 0.0), gocv.NewScalar(1.0, 1.0, 1.0, 0.0), &mask)
@@ -94,8 +95,8 @@ func (a *AnAlgorithm) findRegions() {
 	a.regionsContours = contours
 
 	for i := range contours {
-		a.regions = append(a.regions, AnAlgorithmRegion{
-			area: gocv.ContourArea(contours[i]),
+		a.regions = append(a.regions, anAlgorithmRegion{
+			area:    gocv.ContourArea(contours[i]),
 			contour: contours[i],
 		})
 	}
@@ -115,11 +116,10 @@ func (a *AnAlgorithm) findRegions() {
 	}
 }
 
-
 // Identify the leftmost, the uppermost, the rightmost,
 // and the lowermost skin pixels of the three largest
 // skin regions. Use these points as the corner points
-func (a *AnAlgorithm) findBoundsPolyCorners() {
+func (a *anAlgorithm) findBoundsPolyCorners() {
 	leftmost := a.width
 	uppermost := a.height
 	rightmost := 0
@@ -150,11 +150,11 @@ func (a *AnAlgorithm) findBoundsPolyCorners() {
 	width := rightmost - leftmost
 	height := lowermost - uppermost
 
-	a.boundsPoly = AnAlgorithmBoundsPolygon{
+	a.boundsPoly = anAlgorithmBoundsPolygon{
 		area: float64(width * height),
 		contour: []image.Point{
-			image.Point{X: leftmost, Y:uppermost},
-			image.Point{X: rightmost, Y:lowermost},
+			{X: leftmost, Y: uppermost},
+			{X: rightmost, Y: lowermost},
 		},
 		skinPixelCount: 0,
 	}
@@ -166,7 +166,7 @@ func (a *AnAlgorithm) findBoundsPolyCorners() {
 
 // create poly from images, cacl pixel count
 // and save pixels fro find avg in we need it
-func (a *AnAlgorithm) createBoundsPolyAndCalcSkins() {
+func (a *anAlgorithm) createBoundsPolyAndCalcSkins() {
 
 	xBig := 0
 	yBig := 0
@@ -193,15 +193,14 @@ func (a *AnAlgorithm) createBoundsPolyAndCalcSkins() {
 }
 
 // detect is skin
-func (a *AnAlgorithm) yCbCrSkinDetector(pixCol color.Color) bool {
-	_, cb, cr := RgbaToYCbCr(pixCol)
+func (a *anAlgorithm) yCbCrSkinDetector(pixCol color.Color) bool {
+	_, cb, cr := rgbaToYCbCr(pixCol)
 
-	return cb >= SkinCbMin && cb <= SkinCbMax && cr >= SkinCrMin && cr <= SkinCrMax
+	return cb >= skinCbMin && cb <= skinCbMax && cr >= skinCrMin && cr <= skinCrMax
 }
 
-
 // find avg intensity in boundsPoly skins region
-func (a *AnAlgorithm) findAverageSkinsIntensityInBoundsPoly() {
+func (a *anAlgorithm) findAverageSkinsIntensityInBoundsPoly() {
 
 	a.boundsPoly.avgSkinsIntensity = 0
 
@@ -210,10 +209,13 @@ func (a *AnAlgorithm) findAverageSkinsIntensityInBoundsPoly() {
 		return
 	}
 
-	var cbSum int = 0
-	var crSum int = 0
-	for i := 0 ; i < skinsLen; i++ {
-		_, cb, cr := RgbaToYCbCr(a.boundsPoly.skinPixels[i])
+	var (
+		cbSum int
+		crSum int
+	)
+
+	for i := 0; i < skinsLen; i++ {
+		_, cb, cr := rgbaToYCbCr(a.boundsPoly.skinPixels[i])
 
 		cbSum += cb
 		crSum += cr
@@ -224,11 +226,11 @@ func (a *AnAlgorithm) findAverageSkinsIntensityInBoundsPoly() {
 		return
 	}
 
-	a.boundsPoly.avgSkinsIntensity = float64(SkinCbMax - SkinCbMin + SkinCrMax - SkinCrMin) / avgColorVal
+	a.boundsPoly.avgSkinsIntensity = float64(skinCbMax-skinCbMin+skinCrMax-skinCrMin) / avgColorVal
 }
 
 // return is nude image or not
-func (a *AnAlgorithm) IsNude() (bool, error) {
+func (a *anAlgorithm) IsNude() (bool, error) {
 	a.width = a.img.Bounds().Max.X
 	a.height = a.img.Bounds().Max.Y
 
@@ -315,5 +317,3 @@ func (a *AnAlgorithm) IsNude() (bool, error) {
 
 	return true, nil
 }
-
-

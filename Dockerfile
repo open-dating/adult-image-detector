@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
             libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev && \
             rm -rf /var/lib/apt/lists/*
 
-ARG OPENCV_VERSION="3.4.1"
+ARG OPENCV_VERSION="4.5.1"
 ENV OPENCV_VERSION $OPENCV_VERSION
 
 RUN curl -Lo opencv.zip https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip && \
@@ -40,7 +40,7 @@ RUN curl -Lo opencv.zip https://github.com/opencv/opencv/archive/${OPENCV_VERSIO
 #################
 FROM opencv AS gocv
 
-ARG GOVERSION="1.11.2"
+ARG GOVERSION="1.14.2"
 ENV GOVERSION $GOVERSION
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -61,6 +61,7 @@ WORKDIR $GOPATH
 #########################
 FROM gocv AS adult-image-detector
 
+
 RUN go get -u github.com/kardianos/govendor
 RUN go get github.com/pilu/fresh
 
@@ -68,15 +69,13 @@ RUN git clone https://github.com/grinat/adult-image-detector --recursive "$GOPAT
 
 WORKDIR $GOPATH/src/adult-image-detector
 
-COPY . .
-RUN govendor sync
 
-RUN chmod -R 777 "$GOPATH/src/adult-image-detector/uploads"
+COPY ./ ./
 
 RUN go test
-
-RUN go build
+RUN go mod tidy && go build
 
 EXPOSE 9191
 
-CMD ["/go/src/adult-image-detector/adult-image-detector"]
+ CMD ["/go/src/adult-image-detector/adult-image-detector"]
+ 

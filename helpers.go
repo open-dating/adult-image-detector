@@ -1,13 +1,14 @@
 package main
 
 import (
-	"gocv.io/x/gocv"
 	"image"
 	"image/color"
+
+	"gocv.io/x/gocv"
 )
 
 // convert rgb to ycbr
-func RgbaToYCbCr(pixCol color.Color) (y int, cb int, cr int) {
+func rgbaToYCbCr(pixCol color.Color) (y int, cb int, cr int) {
 	rInt, gInt, bInt, _ := pixCol.RGBA()
 
 	// y8, cb8, cr8 := color.RGBToYCbCr(uint8(rInt), uint8(gInt), uint8(bInt))
@@ -17,14 +18,14 @@ func RgbaToYCbCr(pixCol color.Color) (y int, cb int, cr int) {
 	g := float32(gInt / 256)
 	b := float32(bInt / 256)
 
-	return int(16.0 + 0.256788*r + 0.504129*g +  0.097905*b),
-		int(128.0 - 0.148223*r - 0.290992*g +  0.439215*b),
-		int(128.0 + 0.439215*r - 0.367788*g -  0.071427*b)
+	return int(16.0 + 0.256788*r + 0.504129*g + 0.097905*b),
+		int(128.0 - 0.148223*r - 0.290992*g + 0.439215*b),
+		int(128.0 + 0.439215*r - 0.367788*g - 0.071427*b)
 }
 
 // Convert image to gocv.Mat
 // https://github.com/hybridgroup/gocv/issues/228
-func ImageToRGB8Mat(img image.Image) (gocv.Mat, error) {
+func imageToRGB8Mat(img image.Image) (gocv.Mat, error) {
 	bounds := img.Bounds()
 	x := bounds.Dx()
 	y := bounds.Dy()
