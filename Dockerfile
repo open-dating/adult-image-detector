@@ -67,7 +67,7 @@ RUN go get github.com/pilu/fresh
 
 RUN git clone https://github.com/grinat/adult-image-detector --recursive "$GOPATH/src/adult-image-detector"
 
-WORKDIR $GOPATH/src/nsfw-image-detector
+WORKDIR $GOPATH/src/adult-image-detector
 
 
 COPY ./ ./
