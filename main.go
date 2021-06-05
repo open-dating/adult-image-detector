@@ -8,7 +8,7 @@ import (
 )
 
 // VERSION of the service.
-const VERSION = "0.3.5"
+const VERSION = "0.4.0"
 
 type params struct {
 	Port       string `env:"PORT" envDefault:"9191"`
