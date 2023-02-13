@@ -82,7 +82,7 @@ heroku stack:set container
 ```
 
 ### Requirements
-Go 1.14.2
+Go 1.17
 
 opencv 4.5.1
 
@@ -101,6 +101,6 @@ Install opencv 4.5.1
 
 Run hot reload with fresh:
 ```
-go get -u github.com/pilu/fresh
+go install github.com/pilu/fresh@0fa698148017fa2234856bdc881d9cc62517f62b
 fresh
 ```
