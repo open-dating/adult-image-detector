@@ -2,7 +2,7 @@
 # docker compile timeout=15min
 FROM opendating/adult-image-detector:0.4.0
 
-RUN go get -u github.com/pilu/fresh
+RUN go install github.com/pilu/fresh@0fa698148017fa2234856bdc881d9cc62517f62b
 
 WORKDIR $GOPATH/src/adult-image-detector
 

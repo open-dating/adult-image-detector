@@ -40,7 +40,7 @@ RUN curl -Lo opencv.zip https://github.com/opencv/opencv/archive/${OPENCV_VERSIO
 #################
 FROM opencv AS gocv
 
-ARG GOVERSION="1.14.2"
+ARG GOVERSION="1.17"
 ENV GOVERSION $GOVERSION
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -61,7 +61,7 @@ WORKDIR $GOPATH
 #########################
 FROM gocv AS adult-image-detector
 
-RUN go get -u github.com/pilu/fresh
+RUN go install github.com/pilu/fresh@0fa698148017fa2234856bdc881d9cc62517f62b
 
 WORKDIR $GOPATH/src/adult-image-detector
 
